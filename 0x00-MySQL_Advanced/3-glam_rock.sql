@@ -9,6 +9,5 @@ SELECT
 FROM
     metal_bands
 WHERE
-    main_style = 'Glam rock'
-ORDER BY
-    lifespan DESC;
+    FIND_IN_SET('Glam rock', style) > 0
+ORDER BY lifespan DESC;
