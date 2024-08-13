@@ -3,7 +3,7 @@
 from pymongo import MongoClient
 
 
-def log_stats():
+if __name__ == "__main__":
     """Provides stats about Nginx logs stored in MongoDB"""
 
     client = MongoClient('mongodb://127.0.0.1:27017')
