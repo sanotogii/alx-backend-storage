@@ -4,8 +4,6 @@ from pymongo import MongoClient
 
 
 if __name__ == "__main__":
-    """Provides stats about Nginx logs stored in MongoDB"""
-
     client = MongoClient('mongodb://127.0.0.1:27017')
     db = client.logs
     collection = db.nginx
@@ -21,3 +19,14 @@ if __name__ == "__main__":
 
     status_check = collection.count_documents({"method": "GET", "path": "/status"})
     print(f"{status_check} status check")
+
+    pipeline = [
+        {"$group": {"_id": "$ip", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    top_ips = list(collection.aggregate(pipeline))
+
+    print("IPs:")
+    for ip in top_ips:
+        print(f"\t{ip['_id']}: {ip['count']}")
