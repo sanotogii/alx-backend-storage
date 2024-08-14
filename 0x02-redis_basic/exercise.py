@@ -82,7 +82,7 @@ class Cache:
         return self.get(key, fn=int)
 
 
-def replay(method: Callable):
+def replay(method: Callable) -> None:
     """
     Display the history of calls of a particular function.
     """
