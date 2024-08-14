@@ -40,27 +40,6 @@ def count_calls(method: Callable) -> Callable:
     return wrapper
 
 
-def replay(method: Callable):
-    """
-    Display the history of calls of a particular function.
-    """
-    redis_instance = redis.Redis()
-    method_name = method.__qualname__
-    inputs_key = f"{method_name}:inputs"
-    outputs_key = f"{method_name}:outputs"
-
-    call_count = int(redis_instance.get(method_name) or 0)
-    print(f"{method_name} was called {call_count} times:")
-
-    inputs = redis_instance.lrange(inputs_key, 0, -1)
-    outputs = redis_instance.lrange(outputs_key, 0, -1)
-
-    for input_args, output in zip(inputs, outputs):
-        input_str = input_args.decode('utf-8')
-        output_str = output.decode('utf-8')
-        print(f"{method_name}{input_str} -> {output_str}")
-
-
 class Cache:
 
     def __init__(self):
@@ -101,3 +80,24 @@ class Cache:
         Retrieve and convert data to an integer
         """
         return self.get(key, fn=int)
+
+
+def replay(method: Callable):
+    """
+    Display the history of calls of a particular function.
+    """
+    redis_instance = redis.Redis()
+    method_name = method.__qualname__
+    inputs_key = f"{method_name}:inputs"
+    outputs_key = f"{method_name}:outputs"
+
+    call_count = int(redis_instance.get(method_name) or 0)
+    print(f"{method_name} was called {call_count} times:")
+
+    inputs = redis_instance.lrange(inputs_key, 0, -1)
+    outputs = redis_instance.lrange(outputs_key, 0, -1)
+
+    for input_args, output in zip(inputs, outputs):
+        input_str = input_args.decode('utf-8')
+        output_str = output.decode('utf-8')
+        print(f"{method_name}{input_str} -> {output_str}")
