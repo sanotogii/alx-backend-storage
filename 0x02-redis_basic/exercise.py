@@ -6,6 +6,8 @@ import functools
 """
 0x02. Redis basic
 """
+
+
 def call_history(method: Callable) -> Callable:
     """
     Decorator to store the history of inputs and outputs for a function.
@@ -19,10 +21,11 @@ def call_history(method: Callable) -> Callable:
 
         output = method(self, *args, **kwargs)
         self._redis.rpush(output_key, str(output))
-        
+
         return output
-    
+
     return wrapper
+
 
 def count_calls(method: Callable) -> Callable:
     """
@@ -33,8 +36,9 @@ def count_calls(method: Callable) -> Callable:
         key = method.__qualname__
         self._redis.incr(key)
         return method(self, *args, **kwargs)
-    
+
     return wrapper
+
 
 def replay(method: Callable):
     """
@@ -49,14 +53,17 @@ def replay(method: Callable):
 
     call_count = len(inputs)
     print(f"{method.__qualname__} was called {call_count} times:")
-    
+
     for input_data, output_data in zip(inputs, outputs):
-        print(f"{method.__qualname__}(*{input_data.decode('utf-8')}) -> {output_data.decode('utf-8')}")
+        print(f"{method.__qualname__}(
+              *{input_data.decode('utf-8')}) -> {output_data.decode('utf-8')}")
+
 
 class Cache:
+
     def __init__(self):
         """
-        Initializes a new Cache instance by establishing a 
+        Initializes a new Cache instance by establishing a
         connection to the Redis server.
         Clears the current Redis database to start with a clean slate.
         """
