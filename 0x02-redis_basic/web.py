@@ -4,13 +4,13 @@ import time
 from functools import wraps
 
 
+
 basic_cache = {}
 basic_url_counts = {}
 
-
 def get_page_basic(url: str) -> str:
     current_time = time.time()
-
+    
     if url in basic_cache and current_time - basic_cache[url]['timestamp'] < 10:
         content = basic_cache[url]['content']
     else:
