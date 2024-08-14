@@ -4,7 +4,11 @@ import uuid
 from typing import Union, Callable, Optional
 import functools
 """
-0x02. Redis basic
+0. Writing strings to Redis
+1. Reading from Redis and recovering original type
+2. Incrementing values
+3. Storing lists
+4. Retrieving lists
 """
 
 
@@ -14,6 +18,10 @@ def call_history(method: Callable) -> Callable:
     """
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
+        """
+        Logs method inputs and outputs to Redis lists
+        before executing the method
+        """
         input_key = f"{method.__qualname__}:inputs"
         output_key = f"{method.__qualname__}:outputs"
 
@@ -33,6 +41,10 @@ def count_calls(method: Callable) -> Callable:
     """
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
+        """
+        Increments a Redis counter for the method
+        and executes it with given arguments
+        """
         key = method.__qualname__
         self._redis.incr(key)
         return method(self, *args, **kwargs)
