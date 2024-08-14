@@ -7,6 +7,7 @@ Implementing an expiring web cache and tracker
 """
 r = redis.Redis()
 
+
 def cache_with_expiration(timeout: int) -> Callable:
     """
     Decorator to cache the result of a function for a specified time.
@@ -23,6 +24,7 @@ def cache_with_expiration(timeout: int) -> Callable:
         return wrapper
     return decorator
 
+
 def track_access(func: Callable) -> Callable:
     """
     Decorator to track how many times a URL has been accessed.
@@ -31,6 +33,7 @@ def track_access(func: Callable) -> Callable:
         r.incr(f"count:{url}")
         return func(url)
     return wrapper
+
 
 @track_access
 @cache_with_expiration(10)
