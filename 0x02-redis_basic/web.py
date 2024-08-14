@@ -1,61 +1,45 @@
 #!/usr/bin/env python3
+import redis
 import requests
-import time
-from functools import wraps
+from typing import Callable
+"""
+Implementing an expiring web cache and tracker
+"""
+r = redis.Redis()
 
 
-
-basic_cache = {}
-basic_url_counts = {}
-
-def get_page_basic(url: str) -> str:
-    current_time = time.time()
-    
-    if url in basic_cache and current_time - basic_cache[url]['timestamp'] < 10:
-        content = basic_cache[url]['content']
-    else:
-        response = requests.get(url)
-        content = response.text
-        basic_cache[url] = {
-            'content': content,
-            'timestamp': current_time
-        }
-    
-    basic_url_counts[f"count:{url}"] = basic_url_counts.get(f"count:{url}", 0) + 1
-    
-    return content
-
-
-def cache_and_track(expiration_time=10):
-    cache = {}
-    url_counts = {}
-
-    def decorator(func):
-        @wraps(func)
+def cache_with_expiration(timeout: int) -> Callable:
+    """
+    Decorator to cache the result of a function for a specified time.
+    """
+    def decorator(func: Callable) -> Callable:
         def wrapper(url: str) -> str:
-            current_time = time.time()
+            cached_page = r.get(f"cached:{url}")
+            if cached_page:
+                return cached_page.decode('utf-8')
 
-            if url in cache and current_time - cache[url]['timestamp'] < expiration_time:
-                content = cache[url]['content']
-            else:
-                content = func(url)
-                cache[url] = {
-                    'content': content,
-                    'timestamp': current_time
-                }
-
-            url_counts[f"count:{url}"] = url_counts.get(f"count:{url}", 0) + 1
-            return content
-
-        def get_count(url: str) -> int:
-            return url_counts.get(f"count:{url}", 0)
-
-        wrapper.get_count = get_count
+            result = func(url)
+            r.setex(f"cached:{url}", timeout, result)
+            return result
         return wrapper
-
     return decorator
 
-@cache_and_track(expiration_time=10)
-def get_page_decorator(url: str) -> str:
+
+def track_access(func: Callable) -> Callable:
+    """
+    Decorator to track how many times a URL has been accessed.
+    """
+    def wrapper(url: str) -> str:
+        r.incr(f"count:{url}")
+        return func(url)
+    return wrapper
+
+
+@track_access
+@cache_with_expiration(10)
+def get_page(url: str) -> str:
+    """
+    Fetches the HTML content of a URL and caches it for 10 seconds.
+    """
     response = requests.get(url)
     return response.text
